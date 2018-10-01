@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Barcode recognition with JavaScript</title>
+        <meta name="viewport" content="width=device-width">
+    </head>
+    <body>
+        <p><canvas id="sampleImage"></canvas></p>
+
+        <p><input accept="image/*;capture=camera" capture="capture" id="imageInput" type="file"></p>
+
+        <p id="resultDisplay"></p>
+
+        <p>Known issues:</p>
+
+        <ul>
+            <li>Large image captures sometimes cause FileReader to choke. Reduce camera settings to a low-ish
+                resolution</li>
+            <li>The current barcode decoder only works on UPC and needs to be replaced with a more accurate version that
+                also supports additional encodings.</li>
+        </ul>
+
+        <script src="get-barcode-from-image.js"></script>
+
+        <script>
+            (function () {
+                var barcode,
+                    file,
+                    image,
+                    imageInput      = document.getElementById("imageInput"),
+                    reader,
+                    resultDisplay   = document.getElementById("resultDisplay"),
+                    sampleImage     = document.getElementById("sampleImage");
+
+                function processImage(e) {
+                    e.preventDefault();
+
+                    resultDisplay.innerHTML = "Processing&hellip;";
+
+                    file = e.target.files[0];
+                    reader = new FileReader();
+
+                    try {
+                        reader.readAsDataURL(file);
+                    } catch (e) {
+                        alert("Error reading file");
+                    }
+
+                    reader.onloadend = function (event) {
+                        image = new Image();
+                        image.src = event.target.result;
+                        image.onload = function (e) {
+                            resultDisplay.innerHTML = getBarcodeFromImage(image) || "No barcode found";
+                            sampleImage.width = 300;
+                            sampleImage.height = 225;
+                            sampleImage.getContext("2d").drawImage(image, 0, 0, sampleImage.width, sampleImage.height);
+                        };
+                    };
+                }
+
+                imageInput.addEventListener("change", processImage, false);
+            })();
+        </script>
+    </body>
+</html>
